@@ -45,7 +45,7 @@ const baseBodyTemplate = `
  * Trust:
  *  - logoUrl from URL.createObjectURL (blob URL)
  */
-function buildBodyHtml(values: SiteFormValues): string {
+function buildBodyHtml(values: SiteFormValues, htmlContent: string): string {
   const safeMainContent = DOMPurify.sanitize(
     values.mainContent ||
       "<p>Write your HTML content here and see the preview on the right.</p>",
@@ -54,7 +54,7 @@ function buildBodyHtml(values: SiteFormValues): string {
   const titleText = values.title.trim() || "My Awesome Business";
   const subtitleText = values.subtitle.trim() || "Your slogan here";
 
-  let result = baseBodyTemplate;
+  let result = htmlContent;
 
   const replacements: Record<string, string> = {
     "{{title}}": escapeHtml(titleText),
@@ -134,9 +134,16 @@ function NewProjectView() {
   const [iframeContent, setIFrameContent] = useState("");
 
   // Compute the iframe document whenever formValues change
-  const iframeDoc = useMemo(async () => {
+  const iframeDoc = useMemo(() => {
+    console.log(formValues);
+
+    buildIframeDocument().then((value) => {
+      const bodyHtml = buildBodyHtml(formValues, value);
+      setIFrameContent(bodyHtml);
+    });
+
     return iframeContent;
-  }, [iframeContent]);
+  }, [formValues]);
 
   useEffect(() => {
     const loadTemplateContent = async () => {
