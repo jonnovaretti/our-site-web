@@ -1,4 +1,4 @@
-import React, { useState, useMemo, ChangeEvent, useEffect } from "react";
+import { useState, useMemo, ChangeEvent, useEffect, useRef } from "react";
 import DOMPurify from "dompurify";
 
 type SiteFormValues = {
@@ -132,23 +132,40 @@ function NewProjectView() {
   };
 
   const [iframeContent, setIFrameContent] = useState("");
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
 
-  // Compute the iframe document whenever formValues change
-  const iframeDoc = useMemo(() => {
-    console.log(formValues);
+  // Focus/scroll to element AFTER iframe loads the srcDoc
+  const handleIframeLoad = () => {
+    const iframe = iframeRef.current;
+    if (!iframe) return;
 
-    buildIframeDocument().then((value) => {
-      const bodyHtml = buildBodyHtml(formValues, value);
-      setIFrameContent(bodyHtml);
-    });
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (!doc) return;
 
-    return iframeContent;
-  }, [formValues]);
+    const targetElement = doc.querySelector<HTMLElement>("#pricing-plans");
+    if (targetElement) {
+      targetElement.scrollIntoView({ behavior: "smooth" });
+      targetElement.focus(); // if you actually want focus, not just scroll
+    }
+  };
 
   useEffect(() => {
     const loadTemplateContent = async () => {
       const htmlTemplateContent = await buildIframeDocument();
       setIFrameContent(htmlTemplateContent);
+    };
+
+    (window as any).focusOnEditor = (elementId: string) => {
+      // do whatever you want here
+      const iframe = document.getElementById("myIFrame");
+      const iframeWindow = iframe.contentWindow;
+      const targetElement = iframeWindow.document.querySelector(
+        `#${elementId}`,
+      );
+
+      if (targetElement) {
+        setFormValues({ title: targetElement.innerText });
+      }
     };
 
     loadTemplateContent();
@@ -175,7 +192,7 @@ function NewProjectView() {
 
         <div style={{ marginBottom: "1rem" }}>
           <label style={{ display: "block", marginBottom: "0.25rem" }}>
-            Title
+            Field
           </label>
           <input
             type="text"
@@ -183,49 +200,6 @@ function NewProjectView() {
             onChange={handleChange("title")}
             style={{ width: "100%", padding: "0.5rem" }}
             placeholder="My Pizza Shop"
-          />
-        </div>
-
-        <div style={{ marginBottom: "1rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
-            Subtitle
-          </label>
-          <input
-            type="text"
-            value={formValues.subtitle}
-            onChange={handleChange("subtitle")}
-            style={{ width: "100%", padding: "0.5rem" }}
-            placeholder="Best slices in town"
-          />
-        </div>
-
-        <div style={{ marginBottom: "1rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
-            Logo
-          </label>
-          <input type="file" accept="image/*" onChange={handleLogoChange} />
-        </div>
-
-        <div style={{ marginBottom: "1rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
-            Main Content (HTML)
-          </label>
-          <textarea
-            value={formValues.mainContent}
-            onChange={handleChange("mainContent")}
-            style={{ width: "100%", height: "250px", padding: "0.5rem" }}
-            placeholder={`Write HTML here...
-
-Example:
-
-<h2>About Us</h2>
-<p>We are a family business...</p>
-
-<h2>Services</h2>
-<ul>
-  <li>Delivery</li>
-  <li>Catering</li>
-</ul>`}
           />
         </div>
       </div>
@@ -244,8 +218,9 @@ Example:
 
         <iframe
           // allow-same-origin + allow-scripts lets template JS run,
-          // but still keeps it sandboxed away from your app.
+          // but still keeps it sandboxed away from your app
           sandbox="allow-same-origin allow-scripts"
+          id="myIFrame"
           style={{
             width: "100%",
             height: "100%",
@@ -255,6 +230,8 @@ Example:
           }}
           title="Site preview"
           srcDoc={iframeContent}
+          ref={iframeRef}
+          onLoad={handleIframeLoad}
         />
       </div>
     </div>
