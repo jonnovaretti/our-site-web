@@ -46,6 +46,7 @@ https://templatemo.com/tm-535-softy-pinko
                 <img
                   alt="Softy Pinko"
                   src="http://localhost:5173/template1/images/topknot_160x30.png"
+                  id="img1"
                 />
               </a>
               <!-- ***** Logo End ***** -->
@@ -925,6 +926,19 @@ https://templatemo.com/tm-535-softy-pinko
         }
       }
 
+      document.addEventListener("DOMContentLoaded", function () {
+        const elementIds = ["img1", "img2"];
+
+        elementIds.forEach((elementId) => {
+          const element = document.querySelector(`#${elementId}`);
+          if (element) {
+            element.addEventListener("click", () =>
+              callParent(elementId, "image"),
+            );
+          }
+        });
+      });
+
       // examples:
       // callParent when user clicks a button
       document.addEventListener("DOMContentLoaded", function () {
@@ -1078,7 +1092,9 @@ https://templatemo.com/tm-535-softy-pinko
         elementIds.forEach((elementId) => {
           const element = document.querySelector(`#${elementId}`);
           if (element) {
-            element.addEventListener("click", () => callParent(elementId));
+            element.addEventListener("click", () =>
+              callParent(elementId, "text"),
+            );
           }
         });
       });

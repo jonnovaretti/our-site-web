@@ -1,13 +1,5 @@
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 
-type SiteFormValues = {
-  title: string;
-  subtitle: string;
-  mainContent: string; // user-provided HTML
-  logoFile?: File | null;
-  logoUrl?: string;
-};
-
 /**
  * Wrap body HTML into a full HTML document for the iframe.
  * Here you can:
@@ -21,12 +13,15 @@ async function buildIframeDocument(): Promise<string> {
   return htmlText;
 }
 
+type ELEMENT_TYPE = "text" | "image";
+
 function NewProjectView() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
   const [iframeContent, setIFrameContent] = useState("");
   const fieldsValues = useMemo(() => new Map(), []);
   const [currentElementId, setCurrentElementId] = useState("");
   const [currentValue, setCurrentValue] = useState("");
+  const [elementType, setElementType] = useState<ELEMENT_TYPE>("text");
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -34,8 +29,6 @@ function NewProjectView() {
     const value = event.target.value;
 
     setCurrentValue(value);
-
-    fieldsValues.set(currentElementId, value);
 
     const iframe = document.getElementById("myIFrame");
     const iframeWindow = iframe.contentWindow;
@@ -45,9 +38,29 @@ function NewProjectView() {
 
     if (targetElement) {
       targetElement.innerText = value;
+      fieldsValues.set(currentElementId, value);
+    }
+  };
+
+  const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
     }
 
-    console.log(fieldsValues);
+    const previewUrl = URL.createObjectURL(file);
+
+    const iframe = document.getElementById("myIFrame");
+    const iframeWindow = iframe.contentWindow;
+    const targetElement = iframeWindow.document.querySelector(
+      `#${currentElementId}`,
+    );
+
+    if (targetElement) {
+      targetElement.src = previewUrl;
+      fieldsValues.set(currentElementId, value);
+    }
   };
 
   useEffect(() => {
@@ -56,7 +69,10 @@ function NewProjectView() {
       setIFrameContent(htmlTemplateContent);
     };
 
-    (window as any).focusOnEditor = (elementId: string) => {
+    (window as any).focusOnEditor = (
+      elementId: string,
+      elementType: ELEMENT_TYPE,
+    ) => {
       // do whatever you want here
       const iframe = document.getElementById("myIFrame");
       const iframeWindow = iframe.contentWindow;
@@ -65,6 +81,7 @@ function NewProjectView() {
       );
 
       if (targetElement) {
+        setElementType(elementType);
         setCurrentElementId(elementId);
         setCurrentValue(targetElement.innerText);
       }
@@ -92,18 +109,27 @@ function NewProjectView() {
       >
         <h2>Page Editor</h2>
 
-        <div style={{ marginBottom: "1rem" }}>
-          <label style={{ display: "block", marginBottom: "0.25rem" }}>
-            Field
-          </label>
-          <input
-            type="text"
-            value={currentValue}
-            onChange={handleChange}
-            style={{ width: "100%", padding: "0.5rem" }}
-            placeholder="My Pizza Shop"
-          />
-        </div>
+        {elementType === "text" ? (
+          <div style={{ marginBottom: "1rem" }}>
+            <label style={{ display: "block", marginBottom: "0.25rem" }}>
+              Field
+            </label>
+            <input
+              type="text"
+              value={currentValue}
+              onChange={handleChange}
+              style={{ width: "100%", padding: "0.5rem" }}
+              placeholder="My Pizza Shop"
+            />
+          </div>
+        ) : (
+          <div style={{ marginBottom: "1rem" }}>
+            <label style={{ display: "block", marginBottom: "0.25rem" }}>
+              Logo
+            </label>
+            <input type="file" accept="image/*" onChange={handleLogoChange} />
+          </div>
+        )}
       </div>
 
       {/* RIGHT PANEL — Iframe Preview */}
