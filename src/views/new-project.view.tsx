@@ -1,11 +1,13 @@
-import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import {
+  ChangeEvent,
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
-/**
- * Wrap body HTML into a full HTML document for the iframe.
- * Here you can:
- *  - Add external CSS <link> tags (CDN / template CSS)
- *  - Add JS (template scripts, analytics, etc.)
- */
 async function buildIframeDocument(): Promise<string> {
   const response = await fetch("http://localhost:5173/template1/index.html");
   const htmlText = await response.text();
@@ -14,6 +16,23 @@ async function buildIframeDocument(): Promise<string> {
 }
 
 type ELEMENT_TYPE = "text" | "image";
+
+const getHtmlElementFromIFrame = (
+  iframeRef: RefObject<HTMLIFrameElement>,
+  elementId: string,
+): HTMLImageElement | HTMLElement => {
+  const iframe = iframeRef.current;
+
+  if (!iframe) throw new Error("IFrame was not found");
+
+  const iframeWindow = iframe.contentWindow;
+  if (!iframeWindow) throw new Error("IFrame window was not found");
+
+  const targetElement = iframeWindow.document.getElementById(elementId);
+  if (!targetElement) throw new Error(`Element ${elementId} was not found`);
+
+  return targetElement;
+};
 
 function NewProjectView() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -30,21 +49,11 @@ function NewProjectView() {
 
     setCurrentValue(value);
 
-    const iframeWindow = iframeRef.current?.contentWindow;
+    const targetElement = getHtmlElementFromIFrame(iframeRef, currentElementId);
 
-    if (!iframeWindow) return;
-
-    const targetElement = iframeWindow.document.querySelector(
-      `#${currentElementId}`,
-    );
-
-    if (targetElement && !("innerText" in targetElement)) return;
-
-    if (targetElement) {
-      targetElement.innerText = value;
-      fieldsValues.set(currentElementId, value);
-      targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    targetElement.innerText = value;
+    fieldsValues.set(currentElementId, value);
+    targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
   };
 
   const handleLogoChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -56,51 +65,60 @@ function NewProjectView() {
 
     const previewUrl = URL.createObjectURL(file);
 
-    const iframeWindow = iframeRef.current?.contentWindow;
+    const targetElement = getHtmlElementFromIFrame(
+      iframeRef,
+      currentElementId,
+    ) as HTMLImageElement;
 
-    if (!iframeWindow) return;
-
-    const targetElement = iframeWindow.document.querySelector(
-      `#${currentElementId}`,
-    );
-
-    if (targetElement && !("src" in targetElement)) return;
-
-    if (targetElement) {
-      targetElement.src = previewUrl;
-      fieldsValues.set(currentElementId, previewUrl);
-      targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
-    }
+    targetElement.src = previewUrl;
+    fieldsValues.set(currentElementId, previewUrl);
+    targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
   };
+
+  const focusOnEditor = useCallback(
+    ({
+      elementId,
+      elementType,
+    }: {
+      elementId: string;
+      elementType: ELEMENT_TYPE;
+    }) => {
+      const targetElement = getHtmlElementFromIFrame(iframeRef, elementId);
+
+      if (!targetElement) return;
+
+      setElementType(elementType);
+      setCurrentElementId(elementId);
+      setCurrentValue(targetElement.innerText);
+
+      targetElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    },
+    [iframeRef],
+  );
+
+  useEffect(() => {
+    const handler = (event: MessageEvent) => {
+      if (event.data?.type === "FOCUS_ON_EDITOR") {
+        console.log(event.data);
+
+        focusOnEditor({
+          elementId: event.data.payload.elementId,
+          elementType: event.data.payload.elementType,
+        });
+      }
+    };
+
+    window.addEventListener("message", handler);
+    return () => window.removeEventListener("message", handler);
+  }, [focusOnEditor]);
 
   useEffect(() => {
     const loadTemplateContent = async () => {
       const htmlTemplateContent = await buildIframeDocument();
       setIFrameContent(htmlTemplateContent);
-    };
-
-    (window as any).focusOnEditor = (
-      elementId: string,
-      elementType: ELEMENT_TYPE,
-    ) => {
-      // do whatever you want here
-      const iframeWindow = iframeRef.current?.contentWindow;
-
-      if (!iframeWindow) return;
-
-      const targetElement = iframeWindow.document.querySelector(
-        `#${elementId}`,
-      );
-
-      if (!targetElement || (targetElement && !("innerText" in targetElement)))
-        return;
-
-      if (targetElement) {
-        setElementType(elementType);
-        setCurrentElementId(elementId);
-        setCurrentValue(targetElement.innerText as string);
-        targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
     };
 
     loadTemplateContent();
