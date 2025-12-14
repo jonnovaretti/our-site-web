@@ -917,12 +917,12 @@ https://templatemo.com/tm-535-softy-pinko
     <!-- Global Init -->
     <script src="http://localhost:5173/template1/js/custom.js"></script>
     <script>
-      function callParent(parameter) {
+      function callParent(parameter, elementType) {
         if (
           window.parent &&
           typeof window.parent.focusOnEditor === "function"
         ) {
-          window.parent.focusOnEditor(parameter);
+          window.parent.focusOnEditor(parameter, elementType);
         }
       }
 

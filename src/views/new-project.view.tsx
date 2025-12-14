@@ -30,11 +30,15 @@ function NewProjectView() {
 
     setCurrentValue(value);
 
-    const iframe = document.getElementById("myIFrame");
-    const iframeWindow = iframe.contentWindow;
+    const iframeWindow = iframeRef.current?.contentWindow;
+
+    if (!iframeWindow) return;
+
     const targetElement = iframeWindow.document.querySelector(
       `#${currentElementId}`,
     );
+
+    if (targetElement && !("innerText" in targetElement)) return;
 
     if (targetElement) {
       targetElement.innerText = value;
@@ -51,15 +55,19 @@ function NewProjectView() {
 
     const previewUrl = URL.createObjectURL(file);
 
-    const iframe = document.getElementById("myIFrame");
-    const iframeWindow = iframe.contentWindow;
+    const iframeWindow = iframeRef.current?.contentWindow;
+
+    if (!iframeWindow) return;
+
     const targetElement = iframeWindow.document.querySelector(
       `#${currentElementId}`,
     );
 
+    if (targetElement && !("src" in targetElement)) return;
+
     if (targetElement) {
       targetElement.src = previewUrl;
-      fieldsValues.set(currentElementId, value);
+      fieldsValues.set(currentElementId, previewUrl);
     }
   };
 
