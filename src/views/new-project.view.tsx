@@ -43,6 +43,7 @@ function NewProjectView() {
     if (targetElement) {
       targetElement.innerText = value;
       fieldsValues.set(currentElementId, value);
+      targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
 
@@ -68,6 +69,7 @@ function NewProjectView() {
     if (targetElement) {
       targetElement.src = previewUrl;
       fieldsValues.set(currentElementId, previewUrl);
+      targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
     }
   };
 
@@ -82,16 +84,22 @@ function NewProjectView() {
       elementType: ELEMENT_TYPE,
     ) => {
       // do whatever you want here
-      const iframe = document.getElementById("myIFrame");
-      const iframeWindow = iframe.contentWindow;
+      const iframeWindow = iframeRef.current?.contentWindow;
+
+      if (!iframeWindow) return;
+
       const targetElement = iframeWindow.document.querySelector(
         `#${elementId}`,
       );
 
+      if (!targetElement || (targetElement && !("innerText" in targetElement)))
+        return;
+
       if (targetElement) {
         setElementType(elementType);
         setCurrentElementId(elementId);
-        setCurrentValue(targetElement.innerText);
+        setCurrentValue(targetElement.innerText as string);
+        targetElement.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     };
 
