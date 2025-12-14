@@ -8,31 +8,7 @@ import {
   useState,
 } from "react";
 
-async function buildIframeDocument(): Promise<string> {
-  const response = await fetch("http://localhost:5173/template1/index.html");
-  const htmlText = await response.text();
-
-  return htmlText;
-}
-
 type ELEMENT_TYPE = "text" | "image";
-
-const getHtmlElementFromIFrame = (
-  iframeRef: RefObject<HTMLIFrameElement>,
-  elementId: string,
-): HTMLImageElement | HTMLElement => {
-  const iframe = iframeRef.current;
-
-  if (!iframe) throw new Error("IFrame was not found");
-
-  const iframeWindow = iframe.contentWindow;
-  if (!iframeWindow) throw new Error("IFrame window was not found");
-
-  const targetElement = iframeWindow.document.getElementById(elementId);
-  if (!targetElement) throw new Error(`Element ${elementId} was not found`);
-
-  return targetElement;
-};
 
 function NewProjectView() {
   const iframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -41,6 +17,30 @@ function NewProjectView() {
   const [currentElementId, setCurrentElementId] = useState("");
   const [currentValue, setCurrentValue] = useState("");
   const [elementType, setElementType] = useState<ELEMENT_TYPE>("text");
+
+  async function buildIframeDocument(): Promise<string> {
+    const response = await fetch("http://localhost:5173/template1/index.html");
+    const htmlText = await response.text();
+
+    return htmlText;
+  }
+
+  const getHtmlElementFromIFrame = (
+    iframeRef: RefObject<HTMLIFrameElement>,
+    elementId: string,
+  ): HTMLImageElement | HTMLElement => {
+    const iframe = iframeRef.current;
+
+    if (!iframe) throw new Error("IFrame was not found");
+
+    const iframeWindow = iframe.contentWindow;
+    if (!iframeWindow) throw new Error("IFrame window was not found");
+
+    const targetElement = iframeWindow.document.getElementById(elementId);
+    if (!targetElement) throw new Error(`Element ${elementId} was not found`);
+
+    return targetElement;
+  };
 
   const handleChange = (
     event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -125,74 +125,46 @@ function NewProjectView() {
   }, []);
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        fontFamily: "system-ui, sans-serif",
-      }}
-    >
+    <div className="flex h-screen font-sans">
       {/* LEFT PANEL — Editor */}
-      <div
-        style={{
-          flex: 1,
-          borderRight: "1px solid #ddd",
-          padding: "1rem",
-          boxSizing: "border-box",
-        }}
-      >
-        <h2>Page Editor</h2>
+      <div className="flex-1 border-r border-gray-300 p-4 box-border">
+        <h2 className="text-xl font-semibold mb-4">Page Editor</h2>
 
         {elementType === "text" ? (
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", marginBottom: "0.25rem" }}>
-              Field
-            </label>
+          <div className="mb-4">
+            <label className="block mb-1 text-sm font-medium">Field</label>
             <input
               type="text"
               value={currentValue}
               onChange={handleChange}
-              style={{ width: "100%", padding: "0.5rem" }}
               placeholder="My Pizza Shop"
+              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-200"
             />
           </div>
         ) : (
-          <div style={{ marginBottom: "1rem" }}>
-            <label style={{ display: "block", marginBottom: "0.25rem" }}>
-              Logo
-            </label>
-            <input type="file" accept="image/*" onChange={handleLogoChange} />
+          <div className="mb-4">
+            <label className="block mb-1 text-sm font-medium">Logo</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleLogoChange}
+              className="block w-full text-sm"
+            />
           </div>
         )}
       </div>
 
       {/* RIGHT PANEL — Iframe Preview */}
-      <div
-        style={{
-          flex: 2,
-          padding: "1rem",
-          boxSizing: "border-box",
-          overflow: "hidden",
-          backgroundColor: "#fafafa",
-        }}
-      >
-        <h2 style={{ marginTop: 0 }}>Preview</h2>
+      <div className="flex-[2] p-4 box-border overflow-hidden bg-gray-50">
+        <h2 className="text-xl font-semibold mb-4 mt-0">Preview</h2>
 
         <iframe
-          // allow-same-origin + allow-scripts lets template JS run,
-          // but still keeps it sandboxed away from your app
           sandbox="allow-same-origin allow-scripts"
           id="myIFrame"
-          style={{
-            width: "100%",
-            height: "100%",
-            border: "1px solid #ddd",
-            borderRadius: "8px",
-            backgroundColor: "white",
-          }}
+          ref={iframeRef}
           title="Site preview"
           srcDoc={iframeContent}
-          ref={iframeRef}
+          className="w-full h-full border border-gray-300 rounded-lg bg-white"
         />
       </div>
     </div>
