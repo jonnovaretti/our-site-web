@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import Navbar from "../components/navbar.component";
 
 type ELEMENT_TYPE = "text" | "image";
 
@@ -128,7 +129,12 @@ function NewProjectView() {
     <div className="flex h-screen font-sans">
       {/* LEFT PANEL — Editor */}
       <div className="flex-1 border-r border-gray-300 p-4 box-border">
-        <h2 className="text-xl font-semibold mb-4">Page Editor</h2>
+        <aside className="w-full bg-gray shadow-sm">
+          <button type="submit">Submit form</button>
+        </aside>
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-4">Editor</h2>
+        </div>
 
         {elementType === "text" ? (
           <div className="mb-4">
@@ -164,9 +170,6 @@ function NewProjectView() {
           srcDoc={iframeContent}
           className="w-full h-full border border-gray-300 rounded-lg bg-white"
         />
-        <button type="button" className="basis-1/4">
-          Publish
-        </button>
       </div>
     </div>
   );
