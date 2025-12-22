@@ -133,11 +133,11 @@ function NewProjectView() {
         {elementType === "text" ? (
           <div className="mb-4">
             <label className="block mb-1 text-sm font-medium">Field</label>
-            <input
-              type="text"
+            <textarea
+              cols={10}
+              rows={5}
               value={currentValue}
               onChange={handleChange}
-              placeholder="My Pizza Shop"
               className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-200"
             />
           </div>
@@ -155,9 +155,7 @@ function NewProjectView() {
       </div>
 
       {/* RIGHT PANEL — Iframe Preview */}
-      <div className="flex-[2] p-4 box-border overflow-hidden bg-gray-50">
-        <h2 className="text-xl font-semibold mb-4 mt-0">Preview</h2>
-
+      <div className="flex-[2] h-5/6 p-4 box-border overflow-hidden bg-gray-50">
         <iframe
           sandbox="allow-same-origin allow-scripts"
           id="myIFrame"
@@ -166,6 +164,9 @@ function NewProjectView() {
           srcDoc={iframeContent}
           className="w-full h-full border border-gray-300 rounded-lg bg-white"
         />
+        <button type="button" className="basis-1/4">
+          Publish
+        </button>
       </div>
     </div>
   );
