@@ -7,7 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
-import Navbar from "../components/navbar.component";
+import { Button } from "@material-tailwind/react";
 
 type ELEMENT_TYPE = "text" | "image";
 
@@ -133,11 +133,8 @@ function NewProjectView() {
     <div className="flex h-screen font-sans">
       {/* LEFT PANEL — Editor */}
       <div className="flex-1 border-r border-gray-300 p-4 box-border">
-        <aside className="w-full bg-gray-200 shadow-sm">
-          <button onClick={publish} className="bg-black-100" type="submit">
-            Submit form
-          </button>
-        </aside>
+        <Button>Test</Button>
+        <aside className="w-full bg-gray-200 shadow-sm"></aside>
         <div className="p-5">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-4">Editor</h2>
