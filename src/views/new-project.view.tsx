@@ -100,6 +100,10 @@ function NewProjectView() {
     [iframeRef],
   );
 
+  const publish = useCallback(() => {
+    alert("here");
+  }, []);
+
   useEffect(() => {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === "FOCUS_ON_EDITOR") {
@@ -129,35 +133,39 @@ function NewProjectView() {
     <div className="flex h-screen font-sans">
       {/* LEFT PANEL — Editor */}
       <div className="flex-1 border-r border-gray-300 p-4 box-border">
-        <aside className="w-full bg-gray shadow-sm">
-          <button type="submit">Submit form</button>
+        <aside className="w-full bg-gray-200 shadow-sm">
+          <button onClick={publish} className="bg-black-100" type="submit">
+            Submit form
+          </button>
         </aside>
-        <div className="text-center">
-          <h2 className="text-xl font-semibold mb-4">Editor</h2>
-        </div>
+        <div className="p-5">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold mb-4">Editor</h2>
+          </div>
 
-        {elementType === "text" ? (
-          <div className="mb-4">
-            <label className="block mb-1 text-sm font-medium">Field</label>
-            <textarea
-              cols={10}
-              rows={5}
-              value={currentValue}
-              onChange={handleChange}
-              className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-200"
-            />
-          </div>
-        ) : (
-          <div className="mb-4">
-            <label className="block mb-1 text-sm font-medium">Logo</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleLogoChange}
-              className="block w-full text-sm"
-            />
-          </div>
-        )}
+          {elementType === "text" ? (
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium">Field</label>
+              <textarea
+                cols={10}
+                rows={5}
+                value={currentValue}
+                onChange={handleChange}
+                className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring focus:ring-blue-200"
+              />
+            </div>
+          ) : (
+            <div className="mb-4">
+              <label className="block mb-1 text-sm font-medium">Logo</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleLogoChange}
+                className="block w-full text-sm"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       {/* RIGHT PANEL — Iframe Preview */}
